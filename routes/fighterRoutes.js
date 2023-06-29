@@ -38,18 +38,19 @@ router.post('/', createFighterValid, (req, res, next) => {
       return;
     }
     const { name, health = 100, power, defense } = req.body;
-    const newFighter = {
-      name: name.toLowerCase(),
-      health,
-      power,
-      defense
-    }
+
     const existName = fighterService.getOne({ name: name.toLowerCase() });
-    
     if (existName) {
       throw new Error("Name in use")
     }
-    
+
+    const newFighter = {
+      name: name.toLowerCase(),
+      health: Number(health),
+      power: Number(power),
+      defense: Number(defense)
+    }
+
     const data = fighterService.add(newFighter);
       res.data = data;
   } catch (error) {
@@ -67,17 +68,27 @@ router.put('/:id', updateFighterValid, (req, res, next) => {
     const { id } = req.params;
     const newFighter = {};
 
-    if (req.body?.name) {
-      const existFighter = fighterService.getOne({ name: req.body.name });
-      if (existFighter) {
-      throw new Error("Name in use")
-    }
-      newFighter.name = req.body.name.toLowerCase()
-    }
-
     const fighter = fighterService.getOne({ id });
     if (fighter) {
-      const data = fighterService.update(id, {...req.body, ...newFighter});
+      if (req.body?.name) {
+        const existFighter = fighterService.getOne({ name: req.body.name });
+        if (existFighter) {
+          throw new Error("Name in use")
+        }
+        newFighter.name = req.body.name.toLowerCase()
+      }
+
+      if (req.body?.health) {
+        newFighter.health = Number(req.body.health)
+      }
+      if (req.body?.power) {
+        newFighter.power = Number(req.body.power)
+      }
+      if (req.body?.defense) {
+        newFighter.defense = Number(req.body.defense)
+      }
+
+      const data = fighterService.update(id, newFighter);
       res.data = data;
     } else {
       throw new Error("Fighter not found")
